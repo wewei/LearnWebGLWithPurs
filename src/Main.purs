@@ -2,9 +2,11 @@ module Main where
 
 import Prelude
 
+import Behavior (Behavior, counter, observe)
 import Data.Maybe (maybe)
 import Effect (Effect)
 import Effect.Console (log)
+import Effect.Timer (setTimeout)
 import Graphics.Canvas (CanvasElement, fillPath, getCanvasElementById, getContext2D, rect, setFillStyle)
 import Web.DOM.Document (toNonElementParentNode)
 import Web.DOM.Element (Element, clientHeight, clientWidth, setAttribute)
@@ -30,6 +32,13 @@ prepare canvas = do
     setAttribute "width" (show width) canvas
     setAttribute "height" (show height) canvas
 
+-- adjustCanvasSize :: HTMLCanvasElement -> Effect Unit
+-- adjustCanvasSize canvas = do
+--     let elem = toElement canvas
+--     clientWidth elem  >>= (_ `setWidth` canvas)  <<< floor
+--     clientHeight elem >>= (_ `setHeight` canvas) <<< floor
+
+
 main :: Effect Unit
 main = do
     window
@@ -38,5 +47,17 @@ main = do
         >>= pure <<< toNonElementParentNode
         >>= getElementById "my-canvas"
         >>= maybe (pure unit) prepare
+
     getCanvasElementById "my-canvas" >>= maybe (pure unit) render
     log "Rendered!"
+
+    b1 <- counter 100.0
+    b2 <- counter 70.0
+
+    let b3 = do
+            x <- b1
+            y <- b2
+            pure ((x `mod` 0xff * y `mod` 0xff) `mod` 0xff)
+
+    let unob = observe b3 (log <<< show)
+    void $ setTimeout 10000 unob 

@@ -15,10 +15,14 @@ to generate this file without the comments in this block.
   [ "canvas"
   , "console"
   , "effect"
+  , "integers"
+  , "js-timers"
   , "maybe"
+  , "numbers"
   , "prelude"
   , "refs"
   , "web-dom"
+  , "web-events"
   , "web-html"
   ]
 , packages = ./packages.dhall
