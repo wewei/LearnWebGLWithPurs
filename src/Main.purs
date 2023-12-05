@@ -2,7 +2,7 @@ module Main where
 
 import Prelude
 
-import Behavior (Behavior, counter, observe)
+import Behavior (counter, subscribe)
 import Data.Maybe (maybe)
 import Effect (Effect)
 import Effect.Console (log)
@@ -51,13 +51,13 @@ main = do
     getCanvasElementById "my-canvas" >>= maybe (pure unit) render
     log "Rendered!"
 
-    b1 <- counter 100.0
-    b2 <- counter 70.0
+    b1 <- counter 1000.0
+    b2 <- counter 400.0
 
     let b3 = do
             x <- b1
             y <- b2
             pure ((x `mod` 0xff * y `mod` 0xff) `mod` 0xff)
 
-    let unob = observe b3 (log <<< show)
-    void $ setTimeout 10000 unob 
+    unsubscribe <- subscribe b3 (log <<< show)
+    void $ setTimeout 10000 unsubscribe 

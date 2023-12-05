@@ -30,4 +30,5 @@ class MouseTarget a where
     onMouseOut :: Int -> a -> Effect Unit
 
 class (Paintable a, KeyTarget a, MouseTarget a) <= View a
+
 -- | A view represents a rect range that handles the mouse, keyboard and touch events

@@ -1,14 +1,18 @@
 module Behavior
   ( Behavior
   , observe
-  , peek
   , counter
+  , class Subscribe
+  , subscribe
   )
   where
 
 import Prelude
 
 import Effect (Effect)
+
+class Subscribe s where
+    subscribe :: forall a. s a -> (a -> Effect Unit) -> Effect (Effect Unit)
 
 foreign import data Behavior :: Type -> Type
 
@@ -34,8 +38,26 @@ instance Bind Behavior where
 
 instance Monad Behavior
 
-foreign import observe :: forall a. Behavior a -> (a -> Effect Unit) -> Effect Unit
+foreign import subscribe_Behavior :: forall a. Behavior a -> (a -> Effect Unit) -> Effect (Effect Unit)
 
-foreign import peek :: forall a. Behavior a -> Effect a
+instance Subscribe Behavior where
+    subscribe = subscribe_Behavior
+
+foreign import observe :: forall a. Behavior a -> Effect a
 
 foreign import counter :: Number -> Effect (Behavior Int) 
+
+-- | Pulse
+foreign import data Pulse :: Type -> Type
+
+foreign import map_Pulse :: forall a b. (a -> b) -> Pulse a -> Pulse b
+
+instance Functor Pulse where
+    map = map_Pulse
+
+foreign import subscribe_Pulse :: forall a. Pulse a -> (a -> Effect Unit) -> Effect (Effect Unit)
+
+instance Subscribe Pulse where
+    subscribe = subscribe_Pulse
+
+foreign import once :: forall a. Pulse a -> (a -> Effect Unit) -> Effect Unit
