@@ -1,9 +1,12 @@
 module Behavior
   ( Behavior
+  , Pulse
   , observe
   , counter
   , class Subscribe
   , subscribe
+  , integral
+  , differential
   )
   where
 
@@ -74,3 +77,7 @@ instance Subscribe Pulse where
     subscribe = subscribe_Pulse
 
 foreign import once :: forall a. Pulse a -> (a -> Effect Unit) -> Effect Unit
+
+foreign import integral :: forall a b. (a -> b -> b) -> Pulse a -> b -> Effect (Behavior b)
+
+foreign import differential :: forall a b. (a -> a -> b) -> Behavior a -> Pulse b

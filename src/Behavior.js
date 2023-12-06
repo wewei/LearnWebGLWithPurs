@@ -38,7 +38,6 @@ export const observe = (bhA) => () => bhA(() => {});
 export const counter = (interval) => () => {
     const start = Date.now();
     return behavior((cb) => {
-        console.log('Counter', interval);
         const elapsed = Date.now() - start;
         const val = Math.floor(elapsed / interval);
         const ms = (val + 1) * interval - elapsed;
@@ -85,16 +84,27 @@ export const subscribe_Pulse = (psA) => (hdl) => () => {
 
 export const once = (psA) => (hdl) => () => psA(a => hdl(a)());
 
-// export const diff = (f) => (bhA) => () => {
-//     let a = bhA(update);
-//     let cbs = [];
-//     const update = () => {
-//         const aT = bhA(update);
-//         const cbsT = cbs;
-//         cbs = [];
-//         for (let cb of cbsT) {
-//             cb(b);
-//         }
-//     };
-//     return (cb) => { cbs.push(cbs) };
-// };
+export const integral = (f) => (psA) => (b) => () => {
+    let val = b;
+    return behavior(cb => {
+        psA(a => {
+            const newValue = f(a)(val);
+            if (newValue !== val) {
+                val = newValue;
+                cb();
+            }
+        });
+        return val;
+    });
+};
+
+export const differential = (f) => (bhA) => (cb) => {
+    let val;
+    const callback = () => {
+        console.log("get here");
+        const oldVal = val;
+        val = bhA(callback);
+        cb(f(oldVal)(val));
+    };
+    val = bhA(callback);
+};
