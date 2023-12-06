@@ -54,10 +54,12 @@ main = do
     b1 <- counter 1000.0
     b2 <- counter 400.0
 
-    let b3 = do
-            x <- b1
-            y <- b2
-            pure ((x `mod` 0xff * y `mod` 0xff) `mod` 0xff)
+    let b3 = do x <- b1
+                y <- b2
+                let xm = x `mod` 0xff
+                let ym = y `mod` 0xff
+                let rm = (xm * ym) `mod` 0xff
+                pure rm
 
     unsubscribe <- subscribe b3 (log <<< show)
     void $ setTimeout 10000 unsubscribe 

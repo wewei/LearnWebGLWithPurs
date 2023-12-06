@@ -15,6 +15,7 @@ to generate this file without the comments in this block.
   [ "canvas"
   , "console"
   , "effect"
+  , "functions"
   , "integers"
   , "js-timers"
   , "maybe"

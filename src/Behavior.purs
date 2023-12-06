@@ -55,6 +55,19 @@ foreign import map_Pulse :: forall a b. (a -> b) -> Pulse a -> Pulse b
 instance Functor Pulse where
     map = map_Pulse
 
+foreign import apply_Pulse :: forall a b. Pulse (a -> b) -> Pulse a -> Pulse b
+instance Apply Pulse where
+    apply = apply_Pulse
+
+foreign import pure_Pulse :: forall a. a -> Pulse a
+instance Applicative Pulse where
+    pure = pure_Pulse
+
+foreign import bind_Pulse :: forall a b. Pulse a -> (a -> Pulse b) -> Pulse b
+instance Bind Pulse where
+    bind = bind_Pulse
+
+instance Monad Pulse
 foreign import subscribe_Pulse :: forall a. Pulse a -> (a -> Effect Unit) -> Effect (Effect Unit)
 
 instance Subscribe Pulse where
