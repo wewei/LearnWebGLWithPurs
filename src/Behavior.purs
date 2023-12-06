@@ -1,7 +1,7 @@
 module Behavior
   ( Behavior
   , Pulse
-  , observe
+  , peek
   , counter
   , class Subscribe
   , subscribe
@@ -46,7 +46,7 @@ foreign import subscribe_Behavior :: forall a. Behavior a -> (a -> Effect Unit) 
 instance Subscribe Behavior where
     subscribe = subscribe_Behavior
 
-foreign import observe :: forall a. Behavior a -> Effect a
+foreign import peek :: forall a. Behavior a -> Effect a
 
 foreign import counter :: Number -> Effect (Behavior Int) 
 

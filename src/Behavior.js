@@ -33,7 +33,7 @@ export const subscribe_Behavior = (bhA) => (hdl) => () => {
     return () => { cb = null; };
 };
 
-export const observe = (bhA) => () => bhA(() => {});
+export const peek = (bhA) => () => bhA(() => {});
 
 export const counter = (interval) => () => {
     const start = Date.now();
@@ -88,23 +88,13 @@ export const integral = (f) => (psA) => (b) => () => {
     let val = b;
     return behavior(cb => {
         psA(a => {
-            const newValue = f(a)(val);
-            if (newValue !== val) {
-                val = newValue;
-                cb();
-            }
+            val = f(a)(val);
+            cb();
         });
         return val;
     });
 };
 
 export const differential = (f) => (bhA) => (cb) => {
-    let val;
-    const callback = () => {
-        console.log("get here");
-        const oldVal = val;
-        val = bhA(callback);
-        cb(f(oldVal)(val));
-    };
-    val = bhA(callback);
+    const val = bhA(() => cb(f(val)(bhA(() => {}))));
 };
