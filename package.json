@@ -13,6 +13,6 @@
     "spago": "^0.21.0"
   },
   "dependencies": {
-    "@node-frp/core": "^0.0.5"
+    "@node-frp/core": "^0.0.8"
   }
 }

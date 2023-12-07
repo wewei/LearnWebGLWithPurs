@@ -1,7 +1,7 @@
 module Reactive.Dynamics
-  ( diff
+  ( accum
+  , diff
   , react
-  , accum
   )
   where
 
