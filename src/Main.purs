@@ -2,12 +2,14 @@ module Main where
 
 import Prelude
 
-import Behavior (counter, differential, integral, subscribe)
 import Data.Maybe (maybe)
 import Effect (Effect)
 import Effect.Console (log)
 import Effect.Timer (setTimeout)
 import Graphics.Canvas (CanvasElement, fillPath, getCanvasElementById, getContext2D, rect, setFillStyle)
+import Reactive.Timing (counter)
+import Reactive.Convert (accum, diff)
+import Reactive.Observable (observe)
 import Web.DOM.Document (toNonElementParentNode)
 import Web.DOM.Element (Element, clientHeight, clientWidth, setAttribute)
 import Web.DOM.NonElementParentNode (getElementById)
@@ -58,12 +60,12 @@ main = do
                 y <- b2
                 pure (x * y)
 
-        p1 = differential (\x y -> x * (y - x)) b3
+        p1 = diff (\x y -> x * (y - x)) b3
         p2 = map (("p1: " <> _) <<< show) p1
 
-    unsub1 <- p2 `subscribe` log
-    void $ setTimeout 10000 unsub1
+    unob1 <- p2 `observe` log
+    void $ setTimeout 10000 unob1
 
-    b4 <- integral (+) p1 0
-    unsub2 <- b4 `subscribe` (log <<< ("b4: " <> _) <<< show)
-    void $ setTimeout 10000 unsub2
+    b4 <- accum (+) p1 0
+    unob2 <- b4 `observe` (log <<< ("b4: " <> _) <<< show)
+    void $ setTimeout 10000 unob2
