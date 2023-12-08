@@ -1,9 +1,9 @@
-module Reactive.Behavior (Behavior) where
+module Reactive.Behavior (Behavior, deflicker) where
 
-import Prelude (class Applicative, class Apply, class Bind, class Functor, class Monad, Unit)
+import Effect (Effect)
+import Prelude (class Applicative, class Apply, class Bind, class Eq, class Functor, class Monad, Unit, (==))
 import Reactive.Observable (class Observable)
 import Reactive.Peekable (class Peekable)
-import Effect (Effect)
 
 foreign import data Behavior :: Type -> Type
 
@@ -38,4 +38,9 @@ foreign import peekBehavior :: forall a. Behavior a -> Effect a
 
 instance Peekable Behavior where
     peek = peekBehavior
+
+foreign import deflickerImpl :: forall a. (a -> a -> Boolean) -> Behavior a -> Behavior a
+
+deflicker :: forall a. Eq a => Behavior a -> Behavior a
+deflicker = deflickerImpl (==)
 

@@ -11,7 +11,7 @@ import Reactive.Behavior (Behavior)
 import Reactive.Peekable (class Peekable, peek)
 import Reactive.Series (Series)
 
-foreign import accum :: forall a b. (a -> b -> b) -> Series a -> b -> Effect (Behavior b)
+foreign import accum :: forall a b. (a -> b -> b) -> b -> Series a -> Effect (Behavior b)
 
 foreign import diff :: forall a b. (a -> a -> b) -> Behavior a -> Series b
 
@@ -22,7 +22,7 @@ react f ser =
     -- Effect (Effect (Behavior b))
     <<< map (join <<< peek)
     -- Effect (Behavior (Effect (Behavior b)))
-    <<< accum g ser
+    <<< (\eb -> accum g eb ser)
     -- Effect (Behavior b)
     <<< pure
     -- Behavior b

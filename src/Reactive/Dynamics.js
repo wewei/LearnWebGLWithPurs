@@ -1,3 +1,1 @@
-import { diff, accum } from "@node-frp/core";
-
-export { diff, accum };
+export { diff, accum } from "@node-frp/core";

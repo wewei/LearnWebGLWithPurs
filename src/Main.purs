@@ -7,9 +7,10 @@ import Effect (Effect)
 import Effect.Console (log)
 import Effect.Timer (setTimeout)
 import Graphics.Canvas (CanvasElement, fillPath, getCanvasElementById, getContext2D, rect, setFillStyle)
-import Reactive.Timing (counter)
+import Reactive.Behavior (deflicker)
 import Reactive.Dynamics (accum, diff)
 import Reactive.Observable (observe)
+import Reactive.Timing (counter)
 import Web.DOM.Document (toNonElementParentNode)
 import Web.DOM.Element (Element, clientHeight, clientWidth, setAttribute)
 import Web.DOM.NonElementParentNode (getElementById)
@@ -63,9 +64,9 @@ main = do
         p1 = diff (\x y -> x * (y - x)) b3
         p2 = map (("p1: " <> _) <<< show) p1
 
-    unob1 <- p2 `observe` log
-    void $ setTimeout 10000 unob1
+    -- unob1 <- p2 `observe` log
+    -- void $ setTimeout 10000 unob1
 
-    b4 <- accum (+) p1 0
-    unob2 <- b4 `observe` (log <<< ("b4: " <> _) <<< show)
+    b4 <- accum (+) 0 p1
+    unob2 <- deflicker b4 `observe` (log <<< ("b4: " <> _) <<< show)
     void $ setTimeout 10000 unob2
