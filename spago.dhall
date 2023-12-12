@@ -22,6 +22,7 @@ to generate this file without the comments in this block.
   , "numbers"
   , "prelude"
   , "refs"
+  , "tuples"
   , "web-dom"
   , "web-events"
   , "web-html"
