@@ -19,6 +19,7 @@ to generate this file without the comments in this block.
   , "integers"
   , "js-timers"
   , "maybe"
+  , "now"
   , "numbers"
   , "prelude"
   , "refs"
