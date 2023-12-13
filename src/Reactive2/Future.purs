@@ -8,6 +8,7 @@ import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
+import Effect.Class (class MonadEffect)
 import Effect.Ref (modify_, new, read)
 
 newtype Future a = Future (Effect ((a -> Effect Unit) -> Effect Unit))
@@ -79,7 +80,25 @@ instance Functor Future where
 
 instance Apply Future where
   apply :: forall a b. Future (a -> b) -> Future a -> Future b
-  apply futF futA = Future do
+  apply futF futA = buffered $ Future do
     obsBoth <- observe $ both futF futA
     pure $ \hdl -> obsBoth $ \(f /\ a) -> hdl (f a)
 
+instance Applicative Future where
+  pure :: forall a. a -> Future a
+  pure val = Future $ pure \hdl -> hdl val
+
+instance Bind Future where
+  bind :: forall a b. Future a -> (a -> Future b) -> Future b
+  bind futA f = buffered $ Future do
+    obsA <- observe futA
+    pure $ \hdlB ->
+      obsA $ \valA -> do
+        obsB <- observe (f valA)
+        obsB hdlB
+
+instance Monad Future
+
+instance MonadEffect Future where
+  liftEffect :: forall a. Effect a -> Future a
+  liftEffect effA = Future $ effA >>= pure <<< flip ($)

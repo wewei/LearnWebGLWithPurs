@@ -1,6 +1,5 @@
 module Reactive2.Behavior
   ( Behavior(..)
-  , counter
   , current
   , future
   )
@@ -8,18 +7,12 @@ module Reactive2.Behavior
 
 import Prelude
 
-import Data.DateTime.Instant (diff)
-import Data.Int (floor)
-import Data.Time.Duration (Milliseconds(..))
-import Data.Tuple (Tuple, fst, snd)
-import Data.Tuple.Nested ((/\))
 import Effect (Effect)
-import Effect.Now (now)
-import Effect.Timer (setTimeout)
-import Reactive2.Future (Future, buffered)
+import Effect.Class (liftEffect)
+import Reactive2.Future (Future, either1, never)
 
 -- newtype Behavior a = Behavior (Effect (Tuple a (Future a)))
-data Behavior a = Behavior (Effect a) (Effect (Future (Behavior a)))
+data Behavior a = Behavior (Effect a) (Future (Behavior a))
 
 -- observe :: forall a. Behavior a -> Effect (Tuple a (Future a))
 -- observe (Behavior x) = x
@@ -27,7 +20,7 @@ data Behavior a = Behavior (Effect a) (Effect (Future (Behavior a)))
 current :: forall a. Behavior a -> Effect a
 current (Behavior cur _) = cur
 
-future :: forall a. Behavior a -> Effect (Future (Behavior a))
+future :: forall a. Behavior a -> Future (Behavior a)
 future (Behavior _ fut) = fut
 
 -- joinFuture :: forall a. Future (Behavior a) -> Future a
@@ -35,57 +28,53 @@ future (Behavior _ fut) = fut
 --   $ \hdlA -> wait futBeh
 --   $ \behB -> current behB >>= hdlA
 
-instance Functor Future where
-  map :: forall a b. (a -> b) -> Future a -> Future b
-  map f futA = Future
-             $ \hdlB -> wait futA
-             $ \behA -> hdlB (map f behA)
-
 instance Functor Behavior where
   map :: forall a b. (a -> b) -> Behavior a -> Behavior b
-  map f behA = Behavior do
-    (a /\ futA) <- observe behA
-    pure (f a /\ map f futA)
+  map f behA = Behavior (f <$> current behA) (map (map f) <<< future $ behA)
 
 instance Apply Behavior where
   apply :: forall a b. (Behavior (a -> b)) -> Behavior a -> Behavior b
-  apply behF behA = Behavior do
-    (f /\ futF) <- observe behF
-    (a /\ futA) <- observe behA
-    pure (f a /\ either (map (_ $ a) futF) (map f futA))
+  apply (Behavior effF futF) (Behavior effA futA) =
+    Behavior (effF <*> effA) $ join <<< liftEffect $ do
+      f <- effF
+      a <- effA
+      pure $ either1 (map (map (_ $ a)) futF) (map (map f) futA)
 
 instance Applicative Behavior where
   pure :: forall a. a -> Behavior a
-  pure a = Behavior (pure (a /\ never))
+  pure a = Behavior (pure a) never
 
 instance Bind Behavior where
   bind :: forall a b. (Behavior a) -> (a -> Behavior b) -> Behavior b
-  bind behA f = Behavior do
-    (a /\ futA) <- observe behA
-    (b /\ futB) <- observe (f a)
-    pure (b /\ either futB (joinFuture $ map f futA))
+  bind behA f = let
+    effBehB :: Effect (Behavior b)
+    effBehB = f <$> current behA
+    in Behavior
+      (join $ current <$> effBehB)
+      (either1 (bind <$> (future behA) <*> pure f)
+               (join $ liftEffect (future <$> effBehB)))
 
 instance Monad Behavior
 
-counter :: Int -> Effect (Behavior Int)
-counter ms = do
-  init <- now
+-- counter :: Int -> Effect (Behavior Int)
+-- counter ms = do
+--   init <- now
 
-  let ctr = Behavior do
-            curr <- now
-            let (Milliseconds m) = diff init curr
-            let dlt = floor m
-            let cnt = dlt `div` ms
-            pure (cnt /\ fut)
-      fut = Future $ \hdl -> do
-            curr <- now
-            let (Milliseconds m) = diff init curr
-            let dlt = floor m
-            let cnt = dlt `div` ms
-            let gap = (cnt + 1) * ms - dlt
-            void $ setTimeout gap (hdl ctr)
+--   let ctr = Behavior do
+--             curr <- now
+--             let (Milliseconds m) = diff init curr
+--             let dlt = floor m
+--             let cnt = dlt `div` ms
+--             pure (cnt /\ fut)
+--       fut = Future $ \hdl -> do
+--             curr <- now
+--             let (Milliseconds m) = diff init curr
+--             let dlt = floor m
+--             let cnt = dlt `div` ms
+--             let gap = (cnt + 1) * ms - dlt
+--             void $ setTimeout gap (hdl ctr)
 
-  pure ctr
+--   pure ctr
     
 
   
