@@ -14,10 +14,12 @@ to generate this file without the comments in this block.
 , dependencies =
   [ "canvas"
   , "console"
+  , "datetime"
   , "effect"
   , "functions"
   , "integers"
   , "js-timers"
+  , "lists"
   , "maybe"
   , "now"
   , "numbers"

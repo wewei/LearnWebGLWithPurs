@@ -1,4 +1,10 @@
-module Reactive2.Behavior where
+module Reactive2.Behavior
+  ( Behavior(..)
+  , counter
+  , current
+  , future
+  )
+  where
 
 import Prelude
 
@@ -10,38 +16,24 @@ import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Effect.Now (now)
 import Effect.Timer (setTimeout)
+import Reactive2.Future (Future, buffered)
 
-newtype Behavior a = Behavior (Effect (Tuple a (Future a)))
+-- newtype Behavior a = Behavior (Effect (Tuple a (Future a)))
+data Behavior a = Behavior (Effect a) (Effect (Future (Behavior a)))
 
-observe :: forall a. Behavior a -> Effect (Tuple a (Future a))
-observe (Behavior x) = x
+-- observe :: forall a. Behavior a -> Effect (Tuple a (Future a))
+-- observe (Behavior x) = x
 
 current :: forall a. Behavior a -> Effect a
-current beh = fst <$> observe beh
+current (Behavior cur _) = cur
 
-future :: forall a. Behavior a -> Effect (Future a)
-future beh = snd <$> observe beh
+future :: forall a. Behavior a -> Effect (Future (Behavior a))
+future (Behavior _ fut) = fut
 
-newtype Future a = Future ((Behavior a -> Effect Unit) -> Effect Unit)
-wait :: forall a. Future a -> (Behavior a -> Effect Unit) -> Effect Unit
-wait (Future x) = x 
-
-never :: forall a. Future a
-never = Future <<< const <<< pure $ unit
-
-joinFuture :: forall a. Future (Behavior a) -> Future a
-joinFuture futBeh = Future
-  $ \hdlA -> wait futBeh
-  $ \behB -> current behB >>= hdlA
-
-foreign import once :: forall a. (a -> Effect Unit) -> Effect (a -> Effect Unit)
-
-either :: forall a. Future a -> Future a -> Future a
-either futX futY = Future
-  $ \hdl -> do
-    onceZ <- once hdl
-    wait futX onceZ
-    wait futY onceZ
+-- joinFuture :: forall a. Future (Behavior a) -> Future a
+-- joinFuture futBeh = Future
+--   $ \hdlA -> wait futBeh
+--   $ \behB -> current behB >>= hdlA
 
 instance Functor Future where
   map :: forall a b. (a -> b) -> Future a -> Future b
